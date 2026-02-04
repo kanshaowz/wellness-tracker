@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes ripple {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .ripple-effect {
+            animation: ripple 0.6s ease-out;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .wave-animation {
+            animation: wave 3s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .sleep-phase {
+            transition: all 0.3s ease;
+        }
+        .sleep-phase:hover {
+            transform: scale(1.05);
+        }
+        .badge-shine {
+            animation: shine 2s infinite;
+        }
+        @keyframes shine {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-400 via-teal-400 to-cyan-500">
+    <!-- Language Selector -->
+    <div class="fixed top-4 right-4 z-50">
+        <select id="languageSelector" class="glass rounded-lg px-4 py-2 text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+        </select>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-2" data-i18n="appTitle">Wellness Tracker</h1>
+            <p class="text-white/80 text-lg" data-i18n="appSubtitle">Track your hydration and sleep for a healthier life</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center mb-8 gap-4">
+            <button id="waterTab" class="glass px-8 py-3 rounded-full text-white font-semibold transition-all hover:bg-white/20 active-tab">
+                <span data-i18n="waterTracker">💧 Water Tracker</span>
+            </button>
+            <button id="sleepTab" class="glass px-8 py-3 rounded-full text-white font-semibold transition-all hover:bg-white/20">
+                <span data-i18n="sleepCalculator">😴 Sleep Calculator</span>
+            </button>
+        </div>
+
+        <!-- Water Tracker Section -->
+        <div id="waterSection" class="space-y-6">
+            <!-- Daily Goal Calculator -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="dailyGoal">Daily Water Goal</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-white/90 mb-2" data-i18n="weightLabel">Weight (kg)</label>
+                        <input type="number" id="weight" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50" placeholder="70" value="70">
+                    </div>
+                    <div>
+                        <label class="block text-white/90 mb-2" data-i18n="activityLabel">Activity Level</label>
+                        <select id="activityLevel" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white">
+                            <option value="1.0" data-i18n="sedentary">Sedentary</option>
+                            <option value="1.2" data-i18n="light" selected>Light</option>
+                            <option value="1.4" data-i18n="moderate">Moderate</option>
+                            <option value="1.6" data-i18n="active">Active</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <p class="text-white/80 mb-2" data-i18n="recommendedIntake">Recommended Daily Intake</p>
+                    <p class="text-5xl font-bold text-white" id="dailyGoalDisplay">2400 ml</p>
+                </div>
+            </div>
+
+            <!-- Visual Progress -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="todayProgress">Today's Progress</h2>
+                <div class="relative w-full h-64 bg-white/10 rounded-3xl overflow-hidden mb-6">
+                    <div id="waterLevel" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 to-cyan-400 transition-all duration-500 wave-animation" style="height: 0%"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <p class="text-6xl font-bold text-white" id="currentIntake">0</p>
+                            <p class="text-xl text-white/90">/ <span id="goalDisplay">2400</span> ml</p>
+                            <p class="text-2xl font-semibold text-white mt-2" id="percentageDisplay">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Add Buttons -->
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <button onclick="addWater(250)" class="glass hover:bg-white/20 rounded-2xl py-6 text-white font-semibold text-lg transition-all transform hover:scale-105">
+                        +250ml
+                    </button>
+                    <button onclick="addWater(500)" class="glass hover:bg-white/20 rounded-2xl py-6 text-white font-semibold text-lg transition-all transform hover:scale-105">
+                        +500ml
+                    </button>
+                    <button onclick="showCustomInput()" class="glass hover:bg-white/20 rounded-2xl py-6 text-white font-semibold text-lg transition-all transform hover:scale-105" data-i18n="custom">
+                        Custom
+                    </button>
+                </div>
+
+                <!-- Custom Input (Hidden by default) -->
+                <div id="customInput" class="hidden mb-6">
+                    <div class="flex gap-4">
+                        <input type="number" id="customAmount" class="flex-1 bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50" placeholder="Amount in ml">
+                        <button onclick="addCustomWater()" class="bg-white/30 hover:bg-white/40 px-6 rounded-lg text-white font-semibold transition-all" data-i18n="add">Add</button>
+                        <button onclick="hideCustomInput()" class="bg-white/20 hover:bg-white/30 px-6 rounded-lg text-white font-semibold transition-all" data-i18n="cancel">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Reset Button -->
+                <button onclick="resetWaterToday()" class="w-full glass hover:bg-white/20 rounded-2xl py-3 text-white font-semibold transition-all" data-i18n="resetToday">
+                    Reset Today
+                </button>
+            </div>
+
+            <!-- Achievement Badges -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="achievements">Achievements</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="badgesContainer">
+                    <!-- Badges will be generated by JS -->
+                </div>
+            </div>
+
+            <!-- Daily History -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="history">History</h2>
+                <div class="space-y-3" id="historyContainer">
+                    <p class="text-white/60 text-center py-8" data-i18n="noHistory">No history yet. Start tracking!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sleep Calculator Section -->
+        <div id="sleepSection" class="hidden space-y-6">
+            <!-- Sleep Cycle Calculator -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="sleepCycles">Sleep Cycle Calculator</h2>
+                <p class="text-white/80 mb-6" data-i18n="cycleInfo">Each sleep cycle is 90 minutes. Optimal sleep includes 4-6 cycles.</p>
+
+                <div class="mb-8">
+                    <label class="block text-white/90 mb-3 text-lg" data-i18n="wakeUpAt">I want to wake up at:</label>
+                    <input type="time" id="wakeUpTime" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white text-lg" value="07:00">
+                    <button onclick="calculateBedtimes()" class="w-full mt-4 bg-white/30 hover:bg-white/40 rounded-lg py-3 text-white font-semibold transition-all" data-i18n="calculate">
+                        Calculate Best Bedtimes
+                    </button>
+                </div>
+
+                <div id="bedtimesResult" class="hidden">
+                    <h3 class="text-xl font-semibold text-white mb-4" data-i18n="suggestedBedtimes">Suggested Bedtimes:</h3>
+                    <div class="grid md:grid-cols-3 gap-4" id="bedtimesList"></div>
+                </div>
+            </div>
+
+            <!-- Bedtime Calculator -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="bedtimePlanner">Bedtime Planner</h2>
+                <div class="mb-8">
+                    <label class="block text-white/90 mb-3 text-lg" data-i18n="goToBedAt">I'm going to bed at:</label>
+                    <input type="time" id="bedTime" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white text-lg" value="23:00">
+                    <button onclick="calculateWakeTimes()" class="w-full mt-4 bg-white/30 hover:bg-white/40 rounded-lg py-3 text-white font-semibold transition-all" data-i18n="calculate">
+                        Calculate Best Wake Times
+                    </button>
+                </div>
+
+                <div id="waketimesResult" class="hidden">
+                    <h3 class="text-xl font-semibold text-white mb-4" data-i18n="suggestedWakeTimes">Suggested Wake Times:</h3>
+                    <div class="grid md:grid-cols-3 gap-4" id="waketimesList"></div>
+                </div>
+            </div>
+
+            <!-- Sleep Debt Calculator -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="sleepDebt">Sleep Debt Calculator</h2>
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-white/90 mb-2" data-i18n="avgSleepLabel">Average sleep per night (hours)</label>
+                        <input type="number" id="avgSleep" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white" placeholder="6.5" step="0.5" value="6.5">
+                    </div>
+                    <div>
+                        <label class="block text-white/90 mb-2" data-i18n="daysLabel">Number of days</label>
+                        <input type="number" id="numDays" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-3 text-white" placeholder="7" value="7">
+                    </div>
+                </div>
+                <button onclick="calculateSleepDebt()" class="w-full bg-white/30 hover:bg-white/40 rounded-lg py-3 text-white font-semibold transition-all mb-6" data-i18n="calculate">
+                    Calculate Sleep Debt
+                </button>
+                <div id="sleepDebtResult" class="hidden">
+                    <div class="bg-white/10 rounded-2xl p-6 text-center">
+                        <p class="text-white/80 mb-2" data-i18n="totalDebt">Total Sleep Debt</p>
+                        <p class="text-4xl font-bold text-white" id="debtAmount">0</p>
+                        <p class="text-white/60 mt-4" id="debtAdvice"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sleep Phases Visualization -->
+            <div class="glass rounded-3xl p-8">
+                <h2 class="text-2xl font-bold text-white mb-6" data-i18n="sleepPhases">Sleep Phases</h2>
+                <p class="text-white/80 mb-6" data-i18n="phasesInfo">A complete sleep cycle goes through 5 stages</p>
+                <div class="space-y-4">
+                    <div class="sleep-phase glass rounded-2xl p-6">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-blue-500/30 rounded-full flex items-center justify-center text-2xl mr-4">1</div>
+                            <h3 class="text-xl font-semibold text-white" data-i18n="phase1Title">Light Sleep (N1)</h3>
+                        </div>
+                        <p class="text-white/70" data-i18n="phase1Desc">Transition between wakefulness and sleep. Lasts 5-10 minutes.</p>
+                    </div>
+                    <div class="sleep-phase glass rounded-2xl p-6">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-blue-600/30 rounded-full flex items-center justify-center text-2xl mr-4">2</div>
+                            <h3 class="text-xl font-semibold text-white" data-i18n="phase2Title">Light Sleep (N2)</h3>
+                        </div>
+                        <p class="text-white/70" data-i18n="phase2Desc">Heart rate slows, body temperature drops. Lasts 10-25 minutes.</p>
+                    </div>
+                    <div class="sleep-phase glass rounded-2xl p-6">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-indigo-600/30 rounded-full flex items-center justify-center text-2xl mr-4">3</div>
+                            <h3 class="text-xl font-semibold text-white" data-i18n="phase3Title">Deep Sleep (N3)</h3>
+                        </div>
+                        <p class="text-white/70" data-i18n="phase3Desc">Most restorative phase. Body repairs tissues and builds bone and muscle. Lasts 20-40 minutes.</p>
+                    </div>
+                    <div class="sleep-phase glass rounded-2xl p-6">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-purple-600/30 rounded-full flex items-center justify-center text-2xl mr-4">4</div>
+                            <h3 class="text-xl font-semibold text-white" data-i18n="phase4Title">Deep Sleep Continues</h3>
+                        </div>
+                        <p class="text-white/70" data-i18n="phase4Desc">Deepest sleep stage. Very hard to wake up. Lasts 10-20 minutes.</p>
+                    </div>
+                    <div class="sleep-phase glass rounded-2xl p-6">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-pink-600/30 rounded-full flex items-center justify-center text-2xl mr-4">5</div>
+                            <h3 class="text-xl font-semibold text-white" data-i18n="phase5Title">REM Sleep</h3>
+                        </div>
+                        <p class="text-white/70" data-i18n="phase5Desc">Rapid eye movement. Dreams occur. Brain consolidates memories. Lasts 10-60 minutes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                appTitle: "Wellness Tracker",
+                appSubtitle: "Track your hydration and sleep for a healthier life",
+                waterTracker: "💧 Water Tracker",
+                sleepCalculator: "😴 Sleep Calculator",
+                dailyGoal: "Daily Water Goal",
+                weightLabel: "Weight (kg)",
+                activityLabel: "Activity Level",
+                sedentary: "Sedentary",
+                light: "Light",
+                moderate: "Moderate",
+                active: "Active",
+                recommendedIntake: "Recommended Daily Intake",
+                todayProgress: "Today's Progress",
+                custom: "Custom",
+                add: "Add",
+                cancel: "Cancel",
+                resetToday: "Reset Today",
+                achievements: "Achievements",
+                history: "History",
+                noHistory: "No history yet. Start tracking!",
+                sleepCycles: "Sleep Cycle Calculator",
+                cycleInfo: "Each sleep cycle is 90 minutes. Optimal sleep includes 4-6 cycles.",
+                wakeUpAt: "I want to wake up at:",
+                calculate: "Calculate",
+                suggestedBedtimes: "Suggested Bedtimes:",
+                bedtimePlanner: "Bedtime Planner",
+                goToBedAt: "I'm going to bed at:",
+                suggestedWakeTimes: "Suggested Wake Times:",
+                sleepDebt: "Sleep Debt Calculator",
+                avgSleepLabel: "Average sleep per night (hours)",
+                daysLabel: "Number of days",
+                totalDebt: "Total Sleep Debt",
+                sleepPhases: "Sleep Phases",
+                phasesInfo: "A complete sleep cycle goes through 5 stages",
+                phase1Title: "Light Sleep (N1)",
+                phase1Desc: "Transition between wakefulness and sleep. Lasts 5-10 minutes.",
+                phase2Title: "Light Sleep (N2)",
+                phase2Desc: "Heart rate slows, body temperature drops. Lasts 10-25 minutes.",
+                phase3Title: "Deep Sleep (N3)",
+                phase3Desc: "Most restorative phase. Body repairs tissues and builds bone and muscle. Lasts 20-40 minutes.",
+                phase4Title: "Deep Sleep Continues",
+                phase4Desc: "Deepest sleep stage. Very hard to wake up. Lasts 10-20 minutes.",
+                phase5Title: "REM Sleep",
+                phase5Desc: "Rapid eye movement. Dreams occur. Brain consolidates memories. Lasts 10-60 minutes.",
+                cycles: "cycles",
+                hours: "hours",
+                firstDay: "First Day! 🎉",
+                threeDays: "3 Day Streak! 🔥",
+                weekWarrior: "Week Warrior! 💪",
+                goalReached: "Goal Reached Today! 🎯",
+                overachiever: "Overachiever! 🌟",
+                hydrationHero: "Hydration Hero! 💧",
+                debtLow: "Great! You're getting enough sleep.",
+                debtModerate: "You have some sleep debt. Try to get more rest.",
+                debtHigh: "Significant sleep debt! Prioritize sleep this week."
+            },
+            zh: {
+                appTitle: "健康追踪器",
+                appSubtitle: "追踪您的水分和睡眠，过更健康的生活",
+                waterTracker: "💧 水分追踪",
+                sleepCalculator: "😴 睡眠计算器",
+                dailyGoal: "每日饮水目标",
+                weightLabel: "体重 (公斤)",
+                activityLabel: "活动水平",
+                sedentary: "久坐",
+                light: "轻度活动",
+                moderate: "中度活动",
+                active: "高度活动",
+                recommendedIntake: "建议每日摄入量",
+                todayProgress: "今日进度",
+                custom: "自定义",
+                add: "添加",
+                cancel: "取消",
+                resetToday: "重置今日",
+                achievements: "成就",
+                history: "历史记录",
+                noHistory: "还没有记录，开始追踪吧！",
+                sleepCycles: "睡眠周期计算器",
+                cycleInfo: "每个睡眠周期90分钟。最佳睡眠包含4-6个周期。",
+                wakeUpAt: "我想在以下时间起床：",
+                calculate: "计算",
+                suggestedBedtimes: "建议就寝时间：",
+                bedtimePlanner: "就寝计划器",
+                goToBedAt: "我将在以下时间睡觉：",
+                suggestedWakeTimes: "建议起床时间：",
+                sleepDebt: "睡眠债务计算器",
+                avgSleepLabel: "每晚平均睡眠（小时）",
+                daysLabel: "天数",
+                totalDebt: "总睡眠债务",
+                sleepPhases: "睡眠阶段",
+                phasesInfo: "一个完整的睡眠周期包含5个阶段",
+                phase1Title: "浅睡眠 (N1)",
+                phase1Desc: "清醒与睡眠之间的过渡。持续5-10分钟。",
+                phase2Title: "浅睡眠 (N2)",
+                phase2Desc: "心率减慢，体温下降。持续10-25分钟。",
+                phase3Title: "深睡眠 (N3)",
+                phase3Desc: "最具恢复性的阶段。身体修复组织，构建骨骼和肌肉。持续20-40分钟。",
+                phase4Title: "深睡眠持续",
+                phase4Desc: "最深的睡眠阶段。很难被唤醒。持续10-20分钟。",
+                phase5Title: "快速眼动睡眠",
+                phase5Desc: "快速眼球运动。做梦发生。大脑巩固记忆。持续10-60分钟。",
+                cycles: "个周期",
+                hours: "小时",
+                firstDay: "第一天！🎉",
+                threeDays: "3天连续！🔥",
+                weekWarrior: "一周勇士！💪",
+                goalReached: "今日达标！🎯",
+                overachiever: "超额完成！🌟",
+                hydrationHero: "水分英雄！💧",
+                debtLow: "很好！您的睡眠充足。",
+                debtModerate: "您有一些睡眠债务。试着多休息。",
+                debtHigh: "睡眠债务严重！本周优先考虑睡眠。"
+            },
+            ja: {
+                appTitle: "ウェルネストラッカー",
+                appSubtitle: "水分補給と睡眠を追跡して、より健康的な生活を",
+                waterTracker: "💧 水分トラッカー",
+                sleepCalculator: "😴 睡眠計算機",
+                dailyGoal: "1日の水分目標",
+                weightLabel: "体重 (kg)",
+                activityLabel: "活動レベル",
+                sedentary: "座りがち",
+                light: "軽い活動",
+                moderate: "中程度の活動",
+                active: "活発",
+                recommendedIntake: "推奨1日摂取量",
+                todayProgress: "今日の進捗",
+                custom: "カスタム",
+                add: "追加",
+                cancel: "キャンセル",
+                resetToday: "今日をリセット",
+                achievements: "実績",
+                history: "履歴",
+                noHistory: "まだ履歴がありません。追跡を開始しましょう！",
+                sleepCycles: "睡眠サイクル計算機",
+                cycleInfo: "各睡眠サイクルは90分です。最適な睡眠には4-6サイクルが含まれます。",
+                wakeUpAt: "起床時刻：",
+                calculate: "計算",
+                suggestedBedtimes: "推奨就寝時刻：",
+                bedtimePlanner: "就寝プランナー",
+                goToBedAt: "就寝時刻：",
+                suggestedWakeTimes: "推奨起床時刻：",
+                sleepDebt: "睡眠負債計算機",
+                avgSleepLabel: "1晩の平均睡眠時間（時間）",
+                daysLabel: "日数",
+                totalDebt: "総睡眠負債",
+                sleepPhases: "睡眠段階",
+                phasesInfo: "完全な睡眠サイクルは5つの段階を経ます",
+                phase1Title: "浅い睡眠 (N1)",
+                phase1Desc: "覚醒と睡眠の間の移行。5-10分続きます。",
+                phase2Title: "浅い睡眠 (N2)",
+                phase2Desc: "心拍数が遅くなり、体温が下がります。10-25分続きます。",
+                phase3Title: "深い睡眠 (N3)",
+                phase3Desc: "最も回復力のある段階。体は組織を修復し、骨と筋肉を構築します。20-40分続きます。",
+                phase4Title: "深い睡眠が続く",
+                phase4Desc: "最も深い睡眠段階。目覚めるのが非常に難しい。10-20分続きます。",
+                phase5Title: "レム睡眠",
+                phase5Desc: "急速眼球運動。夢が起こります。脳は記憶を固定します。10-60分続きます。",
+                cycles: "サイクル",
+                hours: "時間",
+                firstDay: "初日！🎉",
+                threeDays: "3日連続！🔥",
+                weekWarrior: "週戦士！💪",
+                goalReached: "今日の目標達成！🎯",
+                overachiever: "目標超達成！🌟",
+                hydrationHero: "水分補給ヒーロー！💧",
+                debtLow: "素晴らしい！十分な睡眠を取っています。",
+                debtModerate: "少し睡眠負債があります。もっと休息を取りましょう。",
+                debtHigh: "かなりの睡眠負債！今週は睡眠を優先しましょう。"
+            },
+            ko: {
+                appTitle: "웰니스 트래커",
+                appSubtitle: "수분 섭취와 수면을 추적하여 더 건강한 삶을",
+                waterTracker: "💧 수분 트래커",
+                sleepCalculator: "😴 수면 계산기",
+                dailyGoal: "일일 수분 목표",
+                weightLabel: "체중 (kg)",
+                activityLabel: "활동 수준",
+                sedentary: "앉아있는",
+                light: "가벼운 활동",
+                moderate: "중간 활동",
+                active: "활발한 활동",
+                recommendedIntake: "권장 일일 섭취량",
+                todayProgress: "오늘의 진행상황",
+                custom: "사용자 정의",
+                add: "추가",
+                cancel: "취소",
+                resetToday: "오늘 재설정",
+                achievements: "업적",
+                history: "히스토리",
+                noHistory: "아직 기록이 없습니다. 추적을 시작하세요!",
+                sleepCycles: "수면 주기 계산기",
+                cycleInfo: "각 수면 주기는 90분입니다. 최적의 수면에는 4-6주기가 포함됩니다.",
+                wakeUpAt: "기상 시간:",
+                calculate: "계산",
+                suggestedBedtimes: "권장 취침 시간:",
+                bedtimePlanner: "취침 계획",
+                goToBedAt: "취침 시간:",
+                suggestedWakeTimes: "권장 기상 시간:",
+                sleepDebt: "수면 부채 계산기",
+                avgSleepLabel: "평균 수면 시간(시간)",
+                daysLabel: "일수",
+                totalDebt: "총 수면 부채",
+                sleepPhases: "수면 단계",
+                phasesInfo: "완전한 수면 주기는 5단계를 거칩니다",
+                phase1Title: "얕은 수면 (N1)",
+                phase1Desc: "각성과 수면 사이의 전환. 5-10분 지속됩니다.",
+                phase2Title: "얕은 수면 (N2)",
+                phase2Desc: "심박수가 느려지고 체온이 떨어집니다. 10-25분 지속됩니다.",
+                phase3Title: "깊은 수면 (N3)",
+                phase3Desc: "가장 회복력이 높은 단계. 신체는 조직을 복구하고 뼈와 근육을 만듭니다. 20-40분 지속됩니다.",
+                phase4Title: "깊은 수면 계속",
+                phase4Desc: "가장 깊은 수면 단계. 깨우기 매우 어렵습니다. 10-20분 지속됩니다.",
+                phase5Title: "렘 수면",
+                phase5Desc: "빠른 안구 운동. 꿈이 발생합니다. 뇌가 기억을 통합합니다. 10-60분 지속됩니다.",
+                cycles: "주기",
+                hours: "시간",
+                firstDay: "첫날! 🎉",
+                threeDays: "3일 연속! 🔥",
+                weekWarrior: "주간 전사! 💪",
+                goalReached: "오늘 목표 달성! 🎯",
+                overachiever: "초과 달성! 🌟",
+                hydrationHero: "수분 보충 영웅! 💧",
+                debtLow: "좋습니다! 충분한 수면을 취하고 있습니다.",
+                debtModerate: "약간의 수면 부채가 있습니다. 더 많이 쉬세요.",
+                debtHigh: "상당한 수면 부채! 이번 주에 수면을 우선시하세요."
+            }
+        };
+
+        let currentLang = 'en';
+        let waterData = {
+            dailyGoal: 2400,
+            currentIntake: 0,
+            history: [],
+            badges: {
+                firstDay: false,
+                threeDays: false,
+                weekWarrior: false,
+                goalReached: false,
+                overachiever: false,
+                hydrationHero: false
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateUI();
+            calculateDailyGoal();
+            renderBadges();
+            renderHistory();
+
+            // Tab switching
+            document.getElementById('waterTab').addEventListener('click', () => switchTab('water'));
+            document.getElementById('sleepTab').addEventListener('click', () => switchTab('sleep'));
+
+            // Language change
+            document.getElementById('languageSelector').addEventListener('change', (e) => {
+                currentLang = e.target.value;
+                updateLanguage();
+            });
+
+            // Weight/activity change
+            document.getElementById('weight').addEventListener('input', calculateDailyGoal);
+            document.getElementById('activityLevel').addEventListener('change', calculateDailyGoal);
+        });
+
+        function switchTab(tab) {
+            const waterTab = document.getElementById('waterTab');
+            const sleepTab = document.getElementById('sleepTab');
+            const waterSection = document.getElementById('waterSection');
+            const sleepSection = document.getElementById('sleepSection');
+
+            if (tab === 'water') {
+                waterTab.classList.add('active-tab');
+                sleepTab.classList.remove('active-tab');
+                waterSection.classList.remove('hidden');
+                sleepSection.classList.add('hidden');
+            } else {
+                sleepTab.classList.add('active-tab');
+                waterTab.classList.remove('active-tab');
+                sleepSection.classList.remove('hidden');
+                waterSection.classList.add('hidden');
+            }
+        }
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            renderBadges();
+            renderHistory();
+        }
+
+        function calculateDailyGoal() {
+            const weight = parseFloat(document.getElementById('weight').value) || 70;
+            const activityLevel = parseFloat(document.getElementById('activityLevel').value) || 1.2;
+            const goal = Math.round(weight * 35 * activityLevel);
+            waterData.dailyGoal = goal;
+            document.getElementById('dailyGoalDisplay').textContent = `${goal} ml`;
+            document.getElementById('goalDisplay').textContent = goal;
+            updateWaterProgress();
+            saveData();
+        }
+
+        function addWater(amount) {
+            waterData.currentIntake += amount;
+            updateWaterProgress();
+            checkBadges();
+            saveData();
+        }
+
+        function showCustomInput() {
+            document.getElementById('customInput').classList.remove('hidden');
+        }
+
+        function hideCustomInput() {
+            document.getElementById('customInput').classList.add('hidden');
+            document.getElementById('customAmount').value = '';
+        }
+
+        function addCustomWater() {
+            const amount = parseInt(document.getElementById('customAmount').value);
+            if (amount > 0) {
+                addWater(amount);
+                hideCustomInput();
+            }
+        }
+
+        function updateWaterProgress() {
+            const percentage = Math.min((waterData.currentIntake / waterData.dailyGoal) * 100, 100);
+            document.getElementById('waterLevel').style.height = `${percentage}%`;
+            document.getElementById('currentIntake').textContent = waterData.currentIntake;
+            document.getElementById('percentageDisplay').textContent = `${Math.round(percentage)}%`;
+        }
+
+        function resetWaterToday() {
+            // Save today's data to history before reset
+            if (waterData.currentIntake > 0) {
+                const today = new Date().toISOString().split('T')[0];
+                waterData.history.unshift({
+                    date: today,
+                    intake: waterData.currentIntake,
+                    goal: waterData.dailyGoal,
+                    percentage: Math.round((waterData.currentIntake / waterData.dailyGoal) * 100)
+                });
+                // Keep only last 30 days
+                waterData.history = waterData.history.slice(0, 30);
+            }
+            waterData.currentIntake = 0;
+            updateWaterProgress();
+            renderHistory();
+            saveData();
+        }
+
+        function checkBadges() {
+            const percentage = (waterData.currentIntake / waterData.dailyGoal) * 100;
+
+            if (!waterData.badges.firstDay && waterData.history.length === 0 && waterData.currentIntake > 0) {
+                waterData.badges.firstDay = true;
+            }
+            if (!waterData.badges.goalReached && percentage >= 100) {
+                waterData.badges.goalReached = true;
+            }
+            if (!waterData.badges.overachiever && percentage >= 150) {
+                waterData.badges.overachiever = true;
+            }
+            if (!waterData.badges.threeDays && waterData.history.length >= 2) {
+                waterData.badges.threeDays = true;
+            }
+            if (!waterData.badges.weekWarrior && waterData.history.length >= 6) {
+                waterData.badges.weekWarrior = true;
+            }
+            if (!waterData.badges.hydrationHero && waterData.history.filter(h => h.percentage >= 100).length >= 30) {
+                waterData.badges.hydrationHero = true;
+            }
+
+            renderBadges();
+        }
+
+        function renderBadges() {
+            const container = document.getElementById('badgesContainer');
+            const badges = [
+                { key: 'firstDay', emoji: '🎉', locked: '🔒' },
+                { key: 'threeDays', emoji: '🔥', locked: '🔒' },
+                { key: 'weekWarrior', emoji: '💪', locked: '🔒' },
+                { key: 'goalReached', emoji: '🎯', locked: '🔒' },
+                { key: 'overachiever', emoji: '🌟', locked: '🔒' },
+                { key: 'hydrationHero', emoji: '💧', locked: '🔒' }
+            ];
+
+            container.innerHTML = badges.map(badge => {
+                const unlocked = waterData.badges[badge.key];
+                return `
+                    <div class="glass rounded-2xl p-6 text-center ${unlocked ? 'badge-shine' : 'opacity-50'}">
+                        <div class="text-5xl mb-3">${unlocked ? badge.emoji : badge.locked}</div>
+                        <p class="text-white text-sm font-medium">${translations[currentLang][badge.key]}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            if (waterData.history.length === 0) {
+                container.innerHTML = `<p class="text-white/60 text-center py-8">${translations[currentLang].noHistory}</p>`;
+                return;
+            }
+
+            container.innerHTML = waterData.history.slice(0, 7).map(entry => `
+                <div class="glass rounded-2xl p-4 flex justify-between items-center">
+                    <div>
+                        <p class="text-white font-semibold">${entry.date}</p>
+                        <p class="text-white/70 text-sm">${entry.intake} / ${entry.goal} ml</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-bold text-white">${entry.percentage}%</p>
+                        <p class="text-white/70 text-sm">${entry.percentage >= 100 ? '✓' : '−'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Sleep Calculator Functions
+        function calculateBedtimes() {
+            const wakeUpTime = document.getElementById('wakeUpTime').value;
+            if (!wakeUpTime) return;
+
+            const [hours, minutes] = wakeUpTime.split(':').map(Number);
+            const wakeDate = new Date();
+            wakeDate.setHours(hours, minutes, 0);
+
+            const cycles = [6, 5, 4]; // 6, 5, 4 cycles
+            const bedtimes = cycles.map(cycleCount => {
+                const sleepMinutes = cycleCount * 90 + 14; // 14 min to fall asleep
+                const bedTime = new Date(wakeDate.getTime() - sleepMinutes * 60000);
+                return {
+                    time: bedTime.toTimeString().slice(0, 5),
+                    cycles: cycleCount,
+                    hours: (cycleCount * 1.5).toFixed(1)
+                };
+            });
+
+            document.getElementById('bedtimesResult').classList.remove('hidden');
+            document.getElementById('bedtimesList').innerHTML = bedtimes.map(bt => `
+                <div class="glass rounded-2xl p-6 text-center">
+                    <p class="text-3xl font-bold text-white mb-2">${bt.time}</p>
+                    <p class="text-white/80">${bt.cycles} ${translations[currentLang].cycles}</p>
+                    <p class="text-white/60 text-sm">${bt.hours} ${translations[currentLang].hours}</p>
+                </div>
+            `).join('');
+        }
+
+        function calculateWakeTimes() {
+            const bedTime = document.getElementById('bedTime').value;
+            if (!bedTime) return;
+
+            const [hours, minutes] = bedTime.split(':').map(Number);
+            const bedDate = new Date();
+            bedDate.setHours(hours, minutes, 0);
+            bedDate.setTime(bedDate.getTime() + 14 * 60000); // Add 14 min to fall asleep
+
+            const cycles = [4, 5, 6]; // 4, 5, 6 cycles
+            const wakeTimes = cycles.map(cycleCount => {
+                const sleepMinutes = cycleCount * 90;
+                const wakeTime = new Date(bedDate.getTime() + sleepMinutes * 60000);
+                return {
+                    time: wakeTime.toTimeString().slice(0, 5),
+                    cycles: cycleCount,
+                    hours: (cycleCount * 1.5).toFixed(1)
+                };
+            });
+
+            document.getElementById('waketimesResult').classList.remove('hidden');
+            document.getElementById('waketimesList').innerHTML = wakeTimes.map(wt => `
+                <div class="glass rounded-2xl p-6 text-center">
+                    <p class="text-3xl font-bold text-white mb-2">${wt.time}</p>
+                    <p class="text-white/80">${wt.cycles} ${translations[currentLang].cycles}</p>
+                    <p class="text-white/60 text-sm">${wt.hours} ${translations[currentLang].hours}</p>
+                </div>
+            `).join('');
+        }
+
+        function calculateSleepDebt() {
+            const avgSleep = parseFloat(document.getElementById('avgSleep').value) || 0;
+            const numDays = parseInt(document.getElementById('numDays').value) || 0;
+
+            const optimalSleep = 8;
+            const dailyDebt = optimalSleep - avgSleep;
+            const totalDebt = dailyDebt * numDays;
+
+            document.getElementById('sleepDebtResult').classList.remove('hidden');
+            document.getElementById('debtAmount').textContent = `${Math.abs(totalDebt).toFixed(1)} ${translations[currentLang].hours}`;
+
+            let advice = '';
+            if (totalDebt <= 0) {
+                advice = translations[currentLang].debtLow;
+            } else if (totalDebt <= 7) {
+                advice = translations[currentLang].debtModerate;
+            } else {
+                advice = translations[currentLang].debtHigh;
+            }
+            document.getElementById('debtAdvice').textContent = advice;
+        }
+
+        // LocalStorage
+        function saveData() {
+            localStorage.setItem('wellnessTrackerData', JSON.stringify(waterData));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('wellnessTrackerData');
+            if (saved) {
+                waterData = JSON.parse(saved);
+            }
+        }
+
+        function updateUI() {
+            calculateDailyGoal();
+            updateWaterProgress();
+        }
+    </script>
+</body>
+</html>
